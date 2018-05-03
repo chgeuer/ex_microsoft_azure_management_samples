@@ -20,8 +20,6 @@ defmodule MicrosoftAzureMgmtClient do
     new(base_url, token_fetcher.(@scopes))
   end
 
-  # MicrosoftAzureMgmtClient.new_azure_public("fpp") |> MicrosoftAzureMgmtClient.get("foo")
-
   defp new(base_url, token) when is_binary(token) do
     Tesla.build_client([
       {Tesla.Middleware.BaseUrl, base_url},
@@ -32,7 +30,6 @@ defmodule MicrosoftAzureMgmtClient do
 
   def use_fiddler(client = %Tesla.Client{}), do: client |> set_proxy("127.0.0.1", 8888)
 
-  # MicrosoftAzureMgmtClient.new_azure_public("foo") |> MicrosoftAzureMgmtClient.set_proxy("127.0.0.1", 8888) |> MicrosoftAzureMgmtClient.get("/foo")
   def set_proxy(client = %Tesla.Client{}, proxy_host, proxy_port) do
     new_pre =
       case client.pre |> Enum.find_index(&(Tesla.Middleware.Opts == elem(&1, 0))) do
