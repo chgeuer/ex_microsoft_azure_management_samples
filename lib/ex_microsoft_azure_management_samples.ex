@@ -9,7 +9,9 @@ defmodule ExMicrosoftAzureManagementSamples do
 
   def connection() do
     token()
-    |> AzureManagementClient.new()
+    # |> AzureManagementClient.new()
+    |> MicrosoftAzureMgmtClient.new_azure_public()
+    |> MicrosoftAzureMgmtClient.use_fiddler()
   end
 
   def subscription_id() do
@@ -65,5 +67,20 @@ defmodule ExMicrosoftAzureManagementSamples do
 
     sizes
     |> Enum.map(&(&1 |> Map.get(:name)))
+  end
+
+  def export_rg() do
+    conn = connection()
+    api_version = "2017-12-01"
+    resource_group_name = "longterm"
+    parameters = %{}
+
+    conn
+    |> ResourceGroups.resource_groups_export_template(
+      resource_group_name,
+      parameters,
+      api_version,
+      subscription_id()
+    )
   end
 end

@@ -22,7 +22,8 @@ defmodule ExMicrosoftAzureManagementSamples.MixProject do
   defp deps do
     [
       {:ex_microsoft_azure_management,
-       git: "https://github.com/chgeuer/ex_microsoft_azure_management.git", branch: "master"}
+       git: "https://github.com/chgeuer/ex_microsoft_azure_management.git", branch: "master"},
+      {:ibrowse, "~> 4.4"}
     ]
   end
 end
