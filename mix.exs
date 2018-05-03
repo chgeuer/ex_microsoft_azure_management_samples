@@ -21,7 +21,6 @@ defmodule ExMicrosoftAzureManagementSamples.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
       {:ex_microsoft_azure_management,
        git: "https://github.com/chgeuer/ex_microsoft_azure_management.git", branch: "master"}
     ]
