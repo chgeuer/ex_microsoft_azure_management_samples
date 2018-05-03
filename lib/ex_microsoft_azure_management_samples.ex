@@ -22,6 +22,13 @@ defmodule ExMicrosoftAzureManagementSamples do
     Application.get_env(:ex_microsoft_azure_management_samples, :tenant_id)
   end
 
+  @doc """
+  Steals a valid `access_token` from the user's 'az cli' directory (~/.azure/accessTokens.json).
+
+  If the token is expired, run an operation like `az vm list` to re-fresh the token cache.
+
+  Returns the value of the `access_token`.
+  """
   def token() do
     %{"accessToken" => token} =
       System.user_home!()
@@ -38,7 +45,6 @@ defmodule ExMicrosoftAzureManagementSamples do
 
   def list_resource_groups() do
     conn = connection()
-
     api_version = "2018-02-01"
 
     {:ok, %{value: groups}} =
