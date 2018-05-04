@@ -9,47 +9,6 @@ defmodule Sample do
   Showcases the Azure management API.
   """
 
-  def connection() do
-    token()
-    |> Microsoft.Azure.Management.Resources.Connection.new()
-
-    # |> Microsoft.Azure.Management.Connection.new()
-    # |> MicrosoftAzureMgmtClient.new_azure_public()
-    # |> MicrosoftAzureMgmtClient.use_fiddler()
-  end
-
-  def create() do
-    # https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json
-    resource_group_name = "longterm"
-    deployment_name = "fromelix"
-    api_version = "2018-02-01"
-
-    Deployments.deployments_create_or_update(
-      connection(),
-      resource_group_name,
-      deployment_name,
-      %{
-        properties: %{
-          mode: "Incremental",
-          # %{ },
-          parameters: nil,
-          # parametersLink: %{ uri: "", contentVersion: "" },
-          template: %{
-            "$schema":
-              "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-            contentVersion: "1.0.0.0",
-            resources: []
-          }
-          # templateLink: %{ uri: "", contentVersion: "" },
-          # onErrorDeployment: %{ type: "", deploymentName: "" },
-          # debugSetting: %{detailLevel: ""},
-        }
-      },
-      api_version,
-      subscription_id()
-    )
-  end
-
   def subscription_id() do
     Application.get_env(:ex_microsoft_azure_management_samples, :subscription_id)
   end
@@ -79,6 +38,15 @@ defmodule Sample do
     token
   end
 
+  def connection() do
+    token()
+    |> Microsoft.Azure.Management.Resources.Connection.new()
+
+    # |> Microsoft.Azure.Management.Connection.new()
+    # |> MicrosoftAzureMgmtClient.new_azure_public()
+    # |> MicrosoftAzureMgmtClient.use_fiddler()
+  end
+
   def resource_groups_list() do
     conn = connection()
     api_version = "2018-02-01"
@@ -92,6 +60,34 @@ defmodule Sample do
 
     groups
     |> Enum.map(&(&1 |> Map.get(:name)))
+  end
+
+  def resource_groups_create(resource_group_name) do
+    conn = connection()
+    api_version = "2018-02-01"
+    location = "westeurope"
+
+    conn
+    |> ResourceGroups.resource_groups_create_or_update(
+      resource_group_name,
+      %{
+        name: resource_group_name,
+        location: location,
+        tags: %{"elixir" => "rocks"}
+      },
+      api_version,
+      subscription_id()
+    )
+    |> IO.inspect()
+  end
+
+  def resource_groups_delete(resource_group_name) do
+    conn = connection()
+    api_version = "2018-02-01"
+
+    conn
+    |> ResourceGroups.resource_groups_delete(resource_group_name, api_version, subscription_id())
+    |> IO.inspect()
   end
 
   def virtual_machine_sizes_list() do
@@ -120,6 +116,38 @@ defmodule Sample do
     connection
     |> ResourceGroups.resources_list_by_resource_group(
       resource_group_name,
+      api_version,
+      subscription_id()
+    )
+  end
+
+  def create() do
+    # https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json
+    resource_group_name = "longterm"
+    deployment_name = "fromelix"
+    api_version = "2018-02-01"
+
+    Deployments.deployments_create_or_update(
+      connection(),
+      resource_group_name,
+      deployment_name,
+      %{
+        properties: %{
+          mode: "Incremental",
+          # %{ },
+          parameters: nil,
+          # parametersLink: %{ uri: "", contentVersion: "" },
+          template: %{
+            "$schema":
+              "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+            contentVersion: "1.0.0.0",
+            resources: []
+          }
+          # templateLink: %{ uri: "", contentVersion: "" },
+          # onErrorDeployment: %{ type: "", deploymentName: "" },
+          # debugSetting: %{detailLevel: ""},
+        }
+      },
       api_version,
       subscription_id()
     )
