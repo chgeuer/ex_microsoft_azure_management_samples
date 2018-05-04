@@ -1,7 +1,9 @@
-defmodule ExMicrosoftAzureManagementSamples do
+defmodule Sample do
   alias Microsoft.Azure.Management.Resources.Api.ResourceGroups
   alias Microsoft.Azure.Management.Compute.Api.VirtualMachineSizes
   alias Microsoft.Azure.Management.Resources.Api.Deployments
+
+  require Tesla
 
   @moduledoc """
   Showcases the Azure management API.
@@ -9,8 +11,9 @@ defmodule ExMicrosoftAzureManagementSamples do
 
   def connection() do
     token()
-    # |> Microsoft.Azure.Management.Resources.Connection.new()
-    |> Microsoft.Azure.Management.Connection.new()
+    |> Microsoft.Azure.Management.Resources.Connection.new()
+
+    # |> Microsoft.Azure.Management.Connection.new()
     # |> MicrosoftAzureMgmtClient.new_azure_public()
     # |> MicrosoftAzureMgmtClient.use_fiddler()
   end
@@ -28,9 +31,15 @@ defmodule ExMicrosoftAzureManagementSamples do
       %{
         properties: %{
           mode: "Incremental",
-          parameters: %{a: "b"},
+          # %{ },
+          parameters: nil,
           # parametersLink: %{ uri: "", contentVersion: "" },
-          template: %{a: "b"}
+          template: %{
+            "$schema":
+              "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+            contentVersion: "1.0.0.0",
+            resources: []
+          }
           # templateLink: %{ uri: "", contentVersion: "" },
           # onErrorDeployment: %{ type: "", deploymentName: "" },
           # debugSetting: %{detailLevel: ""},

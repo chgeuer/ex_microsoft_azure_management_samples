@@ -1,10 +1,11 @@
 defmodule MicrosoftAzureMgmtClient do
   use Tesla
 
+  # adapter Tesla.Adapter.Ibrowse # https://github.com/teamon/tesla/wiki/0.x-to-1.0-Migration-Guide#dropped-aliases-support-159
   adapter(:ibrowse)
 
   # plug Tesla.Middleware.BaseUrl, "https://management.azure.com"
-  plug(Tesla.Middleware.Headers, %{"User-Agent" => "Elixir"})
+  # plug(Tesla.Middleware.Headers, [{"User-Agent", "Elixir"}])
   plug(Tesla.Middleware.EncodeJson)
   plug(Tesla.Middleware.JSON)
 
@@ -19,27 +20,40 @@ defmodule MicrosoftAzureMgmtClient do
   def new_azure_government(token), do: "https://management.usgovcloudapi.net" |> new(token)
 
   defp new(base_url, token_fetcher) when is_function(token_fetcher) do
-    new(base_url, token_fetcher.(@scopes))
+    token = token_fetcher.(@scopes)
+    new(base_url, token)
   end
 
   defp new(base_url, token) when is_binary(token) do
     Tesla.build_client([
+      Tesla.Middleware.KeepRequest,
       {Tesla.Middleware.BaseUrl, base_url},
+      # https://github.com/teamon/tesla/wiki/0.x-to-1.0-Migration-Guide#headers-are-now-a-list-160
       {Tesla.Middleware.Headers, %{"Authorization" => "Bearer #{token}"}},
+      # {Tesla.Middleware.Opts, [proxy_host: '127.0.0.1', proxy_port: 8888]},
+      &use_fiddler/2,
       Tesla.Middleware.EncodeJson,
       Tesla.Middleware.JSON
-      # {Tesla.Middleware.Opts, proxy_host: '127.0.0.1', proxy_port: 8888}
     ])
+  end
+
+  def use_fiddler(env = %Tesla.Env{}, _stack) do
+    env
+    |> Tesla.put_opt(:proxy_host, '127.0.0.1')
+    |> Tesla.put_opt(:proxy_port, 8888)
   end
 
   def use_fiddler(client = %Tesla.Client{}), do: client |> set_proxy("127.0.0.1", 8888)
 
   def set_proxy(client = %Tesla.Client{}, proxy_host, proxy_port) do
     new_pre =
-      case client.pre |> Enum.find_index(&(Tesla.Middleware.Opts == elem(&1, 0))) do
+      case client.pre |> Enum.find_index(&(&1 |> elem(0) == Tesla.Middleware.Opts)) do
         nil ->
-          client.pre ++ [ {Tesla.Middleware.Opts, :call,
-             [proxy_host: proxy_host |> String.to_charlist(), proxy_port: proxy_port]} ]
+          client.pre ++
+            [
+              {Tesla.Middleware.Opts, :call,
+               [[proxy_host: proxy_host |> String.to_charlist(), proxy_port: proxy_port]]}
+            ]
 
         idx ->
           [opts] = client.pre |> Enum.at(idx) |> elem(2)
@@ -50,7 +64,7 @@ defmodule MicrosoftAzureMgmtClient do
             |> Keyword.put(:proxy_port, proxy_port)
             |> IO.inspect()
 
-          client.pre |> List.replace_at(idx, {Tesla.Middleware.Opts, :call, [ opts ]})
+          client.pre |> List.replace_at(idx, {Tesla.Middleware.Opts, :call, [opts]})
       end
 
     %Tesla.Client{client | pre: new_pre}
