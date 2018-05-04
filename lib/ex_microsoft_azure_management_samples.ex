@@ -1,7 +1,7 @@
 defmodule ExMicrosoftAzureManagementSamples do
-  alias Microsoft.Azure.Management.Connection, as: AzureManagementClient
   alias Microsoft.Azure.Management.Resources.Api.ResourceGroups
   alias Microsoft.Azure.Management.Compute.Api.VirtualMachineSizes
+  alias Microsoft.Azure.Management.Resources.Api.Deployments
 
   @moduledoc """
   Showcases the Azure management API.
@@ -9,9 +9,36 @@ defmodule ExMicrosoftAzureManagementSamples do
 
   def connection() do
     token()
-    # |> AzureManagementClient.new()
-    |> MicrosoftAzureMgmtClient.new_azure_public()
-    |> MicrosoftAzureMgmtClient.use_fiddler()
+    # |> Microsoft.Azure.Management.Resources.Connection.new()
+    |> Microsoft.Azure.Management.Connection.new()
+    # |> MicrosoftAzureMgmtClient.new_azure_public()
+    # |> MicrosoftAzureMgmtClient.use_fiddler()
+  end
+
+  def create() do
+    # https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json
+    resource_group_name = "longterm"
+    deployment_name = "fromelix"
+    api_version = "2018-02-01"
+
+    Deployments.deployments_create_or_update(
+      connection(),
+      resource_group_name,
+      deployment_name,
+      %{
+        properties: %{
+          mode: "Incremental",
+          parameters: %{a: "b"},
+          # parametersLink: %{ uri: "", contentVersion: "" },
+          template: %{a: "b"}
+          # templateLink: %{ uri: "", contentVersion: "" },
+          # onErrorDeployment: %{ type: "", deploymentName: "" },
+          # debugSetting: %{detailLevel: ""},
+        }
+      },
+      api_version,
+      subscription_id()
+    )
   end
 
   def subscription_id() do
@@ -43,7 +70,7 @@ defmodule ExMicrosoftAzureManagementSamples do
     token
   end
 
-  def list_resource_groups() do
+  def resource_groups_list() do
     conn = connection()
     api_version = "2018-02-01"
 
@@ -58,7 +85,7 @@ defmodule ExMicrosoftAzureManagementSamples do
     |> Enum.map(&(&1 |> Map.get(:name)))
   end
 
-  def list_vm_sizes() do
+  def virtual_machine_sizes_list() do
     conn = connection()
     api_version = "2017-12-01"
     location = "westeurope"
@@ -75,16 +102,15 @@ defmodule ExMicrosoftAzureManagementSamples do
     |> Enum.map(&(&1 |> Map.get(:name)))
   end
 
-  def export_rg() do
-    conn = connection()
-    api_version = "2017-12-01"
+  def resources_list_by_resource_group() do
+    # https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json
+    connection = connection()
+    api_version = "2018-02-01"
     resource_group_name = "longterm"
-    parameters = %{}
 
-    conn
-    |> ResourceGroups.resource_groups_export_template(
+    connection
+    |> ResourceGroups.resources_list_by_resource_group(
       resource_group_name,
-      parameters,
       api_version,
       subscription_id()
     )

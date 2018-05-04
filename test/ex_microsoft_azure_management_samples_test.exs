@@ -2,13 +2,13 @@ defmodule ExMicrosoftAzureManagementSamplesTest do
   use ExUnit.Case
 
   test "list resource groups" do
-    ExMicrosoftAzureManagementSamples.list_resource_groups()
+    ExMicrosoftAzureManagementSamples.resource_groups_list()
     |> Enum.join("\n")
     |> IO.puts()
   end
 
   test "list VM sizes" do
-    ExMicrosoftAzureManagementSamples.list_vm_sizes()
+    ExMicrosoftAzureManagementSamples.virtual_machine_sizes_list()
     |> Enum.join("\n")
     |> IO.puts()
   end
