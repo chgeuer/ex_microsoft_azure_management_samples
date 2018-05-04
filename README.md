@@ -1,21 +1,8 @@
 # ExMicrosoftAzureManagementSamples
 
-**TODO: Add description**
+Currently, I'm having problems POSTing to ARM API: https://github.com/swagger-api/swagger-codegen/issues/8138
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ex_microsoft_azure_management_samples` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:ex_microsoft_azure_management_samples, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/ex_microsoft_azure_management_samples](https://hexdocs.pm/ex_microsoft_azure_management_samples).
-
+- https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#parameterObject
+- https://github.com/swagger-api/swagger-codegen/blob/master/modules/swagger-codegen/src/main/java/io/swagger/codegen/languages/ElixirClientCodegen.java
+- https://github.com/swagger-api/swagger-codegen/tree/master/modules/swagger-codegen/src/main/resources/elixir
+- https://github.com/swagger-api/swagger-codegen/blob/master/modules/swagger-codegen/src/main/resources/elixir/api.mustache#L46
