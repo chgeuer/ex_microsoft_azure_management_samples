@@ -11,6 +11,14 @@ defmodule Sample do
   Showcases the Azure management API.
   """
 
+  @api_version %{
+    :resource_groups => "2018-02-01",
+    :subscription => "2016-06-01",
+    :deployments => "2018-02-01",
+    :virtual_machine => "2017-12-01",
+    :disks => "2018-04-01"
+  }
+
   def subscription_id() do
     Application.get_env(:ex_microsoft_azure_management_samples, :subscription_id)
   end
@@ -50,13 +58,10 @@ defmodule Sample do
   end
 
   def resource_groups_list() do
-    conn = connection()
-    api_version = "2018-02-01"
-
     {:ok, %{value: groups}} =
-      conn
+      connection()
       |> ResourceGroups.resource_groups_list(
-        api_version,
+        @api_version.resource_groups,
         subscription_id()
       )
 
@@ -66,22 +71,19 @@ defmodule Sample do
 
   def subscription_list() do
     conn = connection()
-    api_version = "2016-06-01"
 
     {:ok, %{value: subs}} =
       conn
-      |> Subscriptions.subscriptions_list(api_version)
+      |> Subscriptions.subscriptions_list(@api_version.subscription)
 
     subs
     |> Enum.map(&%{subscriptionId: &1.subscriptionId, name: &1.displayName})
   end
 
   def resource_groups_create(resource_group_name) do
-    conn = connection()
-    api_version = "2018-02-01"
     location = "westeurope"
 
-    conn
+    connection()
     |> ResourceGroups.resource_groups_create_or_update(
       resource_group_name,
       %{
@@ -89,7 +91,7 @@ defmodule Sample do
         location: location,
         tags: %{"elixir" => "rocks"}
       },
-      api_version,
+      @api_version.resource_groups,
       subscription_id()
     )
     |> IO.inspect()
@@ -97,23 +99,24 @@ defmodule Sample do
 
   def resource_groups_delete(resource_group_name) do
     conn = connection()
-    api_version = "2018-02-01"
 
     conn
-    |> ResourceGroups.resource_groups_delete(resource_group_name, api_version, subscription_id())
+    |> ResourceGroups.resource_groups_delete(
+      resource_group_name,
+      @api_version.resource_groups,
+      subscription_id()
+    )
     |> IO.inspect()
   end
 
   def virtual_machine_sizes_list() do
-    conn = connection()
-    api_version = "2017-12-01"
     location = "westeurope"
 
     {:ok, %{value: sizes}} =
-      conn
+    connection()
       |> VirtualMachineSizes.virtual_machine_sizes_list(
         location,
-        api_version,
+        @api_version.virtual_machine,
         subscription_id()
       )
 
@@ -123,32 +126,28 @@ defmodule Sample do
 
   def resources_list_by_resource_group() do
     # https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json
-    connection = connection()
-    api_version = "2018-02-01"
     resource_group_name = "longterm"
 
-    connection
+    connection()
     |> ResourceGroups.resources_list_by_resource_group(
       resource_group_name,
-      api_version,
+      @api_version.resource_groups,
       subscription_id()
     )
   end
 
   def resource_groups_export_template() do
     # https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/exporttemplate
-    connection = connection()
-    api_version = "2018-02-01"
     resource_group_name = "longterm"
 
     case ResourceGroups.resource_groups_export_template(
-           connection,
+           connection(),
            resource_group_name,
            %{
              resources: ["*"],
              options: "IncludeComments"
            },
-           api_version,
+           @api_version.resource_groups,
            subscription_id()
          ) do
       {:ok,
@@ -183,7 +182,6 @@ defmodule Sample do
     # https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json
     resource_group_name = "longterm"
     deployment_name = "fromelix"
-    api_version = "2018-02-01"
 
     Deployments.deployments_create_or_update(
       connection(),
@@ -206,48 +204,23 @@ defmodule Sample do
           # debugSetting: %{detailLevel: ""},
         }
       },
-      api_version,
+      @api_version.deployment,
       subscription_id()
     )
   end
 
   def deployments_list_by_resource_group() do
-    # """
-    # This currently fails, because of a problem in Elixir code generation.
-    # The DeploymentPropertiesExtended (https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json#L2256-L2259)
-    # return a key/value object, but the code gen tries to push it into a non-existent struct, like this one:
-    # https://github.com/chgeuer/ex_microsoft_azure_management/blob/dae4e474fef90cd59e9cbad5c28580be8e0733a7/lib/microsoft/azure/management/resources/model/deployment_properties_extended.ex#L48
-
-    # Essentially,
-
-    # "outputs": {
-    #   "type": "object",
-    #   "description": "Key/value pairs that represent deploymentoutput."
-    # },
-
-    # becomes
-
-    # def decode(value, options) do
-    #   value
-    #   |> deserialize(:"outputs", :struct, Microsoft.Azure.Management.Resources.Model.Object, options)
-
-    # but there is no Microsoft.Azure.Management.Resources.Model.Object
-    # """
-    # |> raise()
-
     resource_group_name = "longterm"
-    api_version = "2018-02-01"
 
     Deployments.deployments_list_by_resource_group(
       connection(),
       resource_group_name,
-      api_version,
+      @api_version.deployment,
       subscription_id()
     )
   end
 
   def disks_create() do
-    api_version = "2018-04-01"
     resource_group_name = "disk_demo"
     disk_name = "disk_in_zone_1"
     location = "westeurope"
@@ -262,7 +235,7 @@ defmodule Sample do
       subscription_id(),
       resource_group_name,
       disk_name,
-      api_version,
+      @api_version.disks,
       %{
         location: location,
         sku: %{name: "Premium_LRS"},
