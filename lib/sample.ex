@@ -135,6 +135,50 @@ defmodule Sample do
     )
   end
 
+  def resource_groups_export_template() do
+    # https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/exporttemplate
+    connection = connection()
+    api_version = "2018-02-01"
+    resource_group_name = "longterm"
+
+    case ResourceGroups.resource_groups_export_template(
+           connection,
+           resource_group_name,
+           %{
+             resources: ["*"],
+             options: "IncludeComments"
+           },
+           api_version,
+           subscription_id()
+         ) do
+      {:ok,
+       %{
+         error: %{
+           code: error_code,
+           details: error_details,
+           message: message
+         },
+         template: %{
+           "parameters" => parameters,
+           "resources" => resources,
+           "variables" => variables
+         }
+       }} ->
+        resources |> Poison.encode!()
+
+      {:error, message} ->
+        raise(message)
+    end
+  end
+
+  # def resources_count_by_exporting() do
+  #   Sample.resource_groups_export_template()
+  #   |> elem(1)
+  #   |> Map.get(:template)
+  #   |> Dict.get("resources")
+  #   |> Enum.count()
+  # end
+
   def deployments_create_or_update() do
     # https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json
     resource_group_name = "longterm"
@@ -168,7 +212,29 @@ defmodule Sample do
   end
 
   def deployments_list_by_resource_group() do
-    # https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json
+    # """
+    # This currently fails, because of a problem in Elixir code generation.
+    # The DeploymentPropertiesExtended (https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json#L2256-L2259)
+    # return a key/value object, but the code gen tries to push it into a non-existent struct, like this one:
+    # https://github.com/chgeuer/ex_microsoft_azure_management/blob/dae4e474fef90cd59e9cbad5c28580be8e0733a7/lib/microsoft/azure/management/resources/model/deployment_properties_extended.ex#L48
+
+    # Essentially,
+
+    # "outputs": {
+    #   "type": "object",
+    #   "description": "Key/value pairs that represent deploymentoutput."
+    # },
+
+    # becomes
+
+    # def decode(value, options) do
+    #   value
+    #   |> deserialize(:"outputs", :struct, Microsoft.Azure.Management.Resources.Model.Object, options)
+
+    # but there is no Microsoft.Azure.Management.Resources.Model.Object
+    # """
+    # |> raise()
+
     resource_group_name = "longterm"
     api_version = "2018-02-01"
 
@@ -199,8 +265,8 @@ defmodule Sample do
       api_version,
       %{
         location: location,
-        sku: %{ "name": "Premium_LRS" },
-        zones: [ "#{availability_zone}" ],
+        sku: %{name: "Premium_LRS"},
+        zones: ["#{availability_zone}"],
         properties: %{
           diskSizeGB: disk_size_GB,
           creationData: %{
