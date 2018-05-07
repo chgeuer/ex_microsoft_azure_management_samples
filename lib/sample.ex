@@ -1,7 +1,9 @@
 defmodule Sample do
   alias Microsoft.Azure.Management.Resources.Api.ResourceGroups
   alias Microsoft.Azure.Management.Compute.Api.VirtualMachineSizes
+  alias Microsoft.Azure.Management.Compute.Api.Disks
   alias Microsoft.Azure.Management.Resources.Api.Deployments
+  alias Microsoft.Azure.Management.Subscription.Api.Subscriptions
 
   require Tesla
 
@@ -60,6 +62,18 @@ defmodule Sample do
 
     groups
     |> Enum.map(&(&1 |> Map.get(:name)))
+  end
+
+  def subscription_list() do
+    conn = connection()
+    api_version = "2016-06-01"
+
+    {:ok, %{value: subs}} =
+      conn
+      |> Subscriptions.subscriptions_list(api_version)
+
+    subs
+    |> Enum.map(&%{subscriptionId: &1.subscriptionId, name: &1.displayName})
   end
 
   def resource_groups_create(resource_group_name) do
@@ -121,7 +135,7 @@ defmodule Sample do
     )
   end
 
-  def create() do
+  def deployments_create_or_update() do
     # https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json
     resource_group_name = "longterm"
     deployment_name = "fromelix"
@@ -150,6 +164,50 @@ defmodule Sample do
       },
       api_version,
       subscription_id()
+    )
+  end
+
+  def deployments_list_by_resource_group() do
+    # https://github.com/Azure/azure-rest-api-specs/blob/master/specification/resources/resource-manager/Microsoft.Resources/stable/2018-02-01/resources.json
+    resource_group_name = "longterm"
+    api_version = "2018-02-01"
+
+    Deployments.deployments_list_by_resource_group(
+      connection(),
+      resource_group_name,
+      api_version,
+      subscription_id()
+    )
+  end
+
+  def disks_create() do
+    api_version = "2018-04-01"
+    resource_group_name = "disk_demo"
+    disk_name = "disk_in_zone_1"
+    location = "westeurope"
+    availability_zone = 1
+    disk_size_GB = 128
+
+    resource_group_name
+    |> resource_groups_create()
+
+    Disks.disks_create_or_update(
+      connection(),
+      subscription_id(),
+      resource_group_name,
+      disk_name,
+      api_version,
+      %{
+        location: location,
+        sku: %{ "name": "Premium_LRS" },
+        zones: [ "#{availability_zone}" ],
+        properties: %{
+          diskSizeGB: disk_size_GB,
+          creationData: %{
+            createOption: "Empty"
+          }
+        }
+      }
     )
   end
 end

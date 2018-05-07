@@ -22,10 +22,16 @@ defmodule ExMicrosoftAzureManagementSamples.MixProject do
   defp deps do
     [
       {:ibrowse, "~> 4.4"},
-      {:ex_microsoft_azure_management,
-       app: false,
-       github: "chgeuer/ex_microsoft_azure_management",
-       ref: "dae4e474fef90cd59e9cbad5c28580be8e0733a7"}
+      # {:ex_microsoft_azure_management, app: false, github: "chgeuer/ex_microsoft_azure_management", ref: "dae4e474fef90cd59e9cbad5c28580be8e0733a7"}
+      {:ex_microsoft_azure_management_compute,
+       path:
+         "../ex_microsoft_azure_management_generator/clients/Microsoft.Azure.Management.Compute"},
+      {:ex_microsoft_azure_management_resources,
+       path:
+         "../ex_microsoft_azure_management_generator/clients/Microsoft.Azure.Management.Resources"},
+      {:ex_microsoft_azure_management_subscription,
+       path:
+         "../ex_microsoft_azure_management_generator/clients/Microsoft.Azure.Management.Subscription"}
     ]
   end
 end
