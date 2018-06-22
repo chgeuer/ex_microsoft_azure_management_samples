@@ -51,10 +51,16 @@ defmodule Sample do
   def connection() do
     token()
     |> Microsoft.Azure.Management.Resources.Connection.new()
+    # |> MicrosoftAzureMgmtClient.new_azure_public()
 
     # |> Microsoft.Azure.Management.Connection.new()
     # |> MicrosoftAzureMgmtClient.new_azure_public()
     # |> MicrosoftAzureMgmtClient.use_fiddler()
+  end
+
+  def do_raw_request(request) do
+    connection()
+    |> Microsoft.Azure.Management.Resources.Connection.request(request)
   end
 
   def resource_groups_list() do
@@ -121,7 +127,10 @@ defmodule Sample do
       )
 
     sizes
+    # |> Enum.filter(&(&1.name == "Standard_M64"))
+    # |> IO.inspect()
     |> Enum.map(&(&1 |> Map.get(:name)))
+
   end
 
   def resources_list_by_resource_group() do
@@ -248,5 +257,40 @@ defmodule Sample do
         }
       }
     )
+  end
+
+  defmodule Client do
+    use Tesla
+
+    adapter(:ibrowse)
+    plug Tesla.Middleware.BaseUrl, "https://management.azure.com"
+    plug(Tesla.Middleware.EncodeJson)
+    plug(Tesla.Middleware.JSON)
+
+    def new() do
+      Tesla.build_client([])
+    end
+
+    def raw_request(request) do
+      new() |> Client.request(request)
+    end
+  end
+
+  def quota() do
+    location = "westeurope"
+    provider = "Microsoft.Compute"
+    apiversion = "2014-04" #"2018-04-01"
+
+    [
+      method: :get,
+      # url: "/subscriptions/#{subscription_id()}/providers/#{provider}/locations/#{location}/usages",
+      url: "/subscriptions/#{subscription_id()}/locations",
+      query: [ "api-version": apiversion ],
+      headers: %{
+        "Content-Type" => "application\json",
+        "Authorization" => "Bearer #{token()}"
+      }
+    ]
+    |> Client.raw_request()
   end
 end
