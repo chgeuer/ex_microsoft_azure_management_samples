@@ -24,14 +24,13 @@ defmodule ExMicrosoftAzureManagementSamples.MixProject do
       {:ibrowse, "~> 4.4"},
       # {:ex_microsoft_azure_management, app: false, github: "chgeuer/ex_microsoft_azure_management", ref: "dae4e474fef90cd59e9cbad5c28580be8e0733a7"}
       {:ex_microsoft_azure_management_compute,
-       path:
-         "../ex_microsoft_azure_management_generator/clients/Microsoft.Azure.Management.Compute"},
+       path: "../ex_microsoft_azure_management/Microsoft.Azure.Management.Compute"},
       {:ex_microsoft_azure_management_resources,
-       path:
-         "../ex_microsoft_azure_management_generator/clients/Microsoft.Azure.Management.Resources"},
+       path: "../ex_microsoft_azure_management/Microsoft.Azure.Management.Resources"},
       {:ex_microsoft_azure_management_subscription,
-       path:
-         "../ex_microsoft_azure_management_generator/clients/Microsoft.Azure.Management.Subscription"}
+       path: "../ex_microsoft_azure_management/Microsoft.Azure.Management.Subscription"},
+      {:ex_microsoft_azure_management_storage,
+       path: "../ex_microsoft_azure_management/Microsoft.Azure.Management.Storage"}
     ]
   end
 end

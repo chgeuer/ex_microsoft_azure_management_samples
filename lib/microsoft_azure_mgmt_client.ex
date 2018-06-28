@@ -31,7 +31,7 @@ defmodule MicrosoftAzureMgmtClient do
       # https://github.com/teamon/tesla/wiki/0.x-to-1.0-Migration-Guide#headers-are-now-a-list-160
       {Tesla.Middleware.Headers, %{"Authorization" => "Bearer #{token}"}},
       # {Tesla.Middleware.Opts, [proxy_host: '127.0.0.1', proxy_port: 8888]},
-      #&use_fiddler/2,
+      # &use_fiddler/2,
       Tesla.Middleware.EncodeJson,
       Tesla.Middleware.JSON,
       proxy_middleware()

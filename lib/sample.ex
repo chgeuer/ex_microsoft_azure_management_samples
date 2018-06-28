@@ -4,6 +4,7 @@ defmodule Sample do
   alias Microsoft.Azure.Management.Compute.Api.Disks
   alias Microsoft.Azure.Management.Resources.Api.Deployments
   alias Microsoft.Azure.Management.Subscription.Api.Subscriptions
+  alias Microsoft.Azure.Management.Storage.Api.StorageAccounts
 
   require Tesla
 
@@ -16,7 +17,8 @@ defmodule Sample do
     :subscription => "2016-06-01",
     :deployments => "2018-02-01",
     :virtual_machine => "2017-12-01",
-    :disks => "2018-04-01"
+    :disks => "2018-04-01",
+    :storage => "2018-02-01"
   }
 
   def subscription_id() do
@@ -51,6 +53,7 @@ defmodule Sample do
   def connection() do
     token()
     |> Microsoft.Azure.Management.Resources.Connection.new()
+
     # |> MicrosoftAzureMgmtClient.new_azure_public()
 
     # |> Microsoft.Azure.Management.Connection.new()
@@ -119,7 +122,7 @@ defmodule Sample do
     location = "westeurope"
 
     {:ok, %{value: sizes}} =
-    connection()
+      connection()
       |> VirtualMachineSizes.virtual_machine_sizes_list(
         location,
         @api_version.virtual_machine,
@@ -130,7 +133,6 @@ defmodule Sample do
     # |> Enum.filter(&(&1.name == "Standard_M64"))
     # |> IO.inspect()
     |> Enum.map(&(&1 |> Map.get(:name)))
-
   end
 
   def resources_list_by_resource_group() do
@@ -229,6 +231,24 @@ defmodule Sample do
     )
   end
 
+  def storage_accounts_list() do
+    StorageAccounts.storage_accounts_list(
+      connection(),
+      @api_version.storage,
+      subscription_id()
+    )
+  end
+
+  def storage_accounts_list_keys(resource_group_name, account_name) do
+    StorageAccounts.storage_accounts_list_keys(
+      connection(),
+      resource_group_name,
+      account_name,
+      @api_version.storage,
+      subscription_id()
+    )
+  end
+
   def disks_create() do
     resource_group_name = "disk_demo"
     disk_name = "disk_in_zone_1"
@@ -263,7 +283,7 @@ defmodule Sample do
     use Tesla
 
     adapter(:ibrowse)
-    plug Tesla.Middleware.BaseUrl, "https://management.azure.com"
+    plug(Tesla.Middleware.BaseUrl, "https://management.azure.com")
     plug(Tesla.Middleware.EncodeJson)
     plug(Tesla.Middleware.JSON)
 
@@ -279,13 +299,14 @@ defmodule Sample do
   def quota() do
     location = "westeurope"
     provider = "Microsoft.Compute"
-    apiversion = "2014-04" #"2018-04-01"
+    # "2018-04-01"
+    apiversion = "2014-04"
 
     [
       method: :get,
       # url: "/subscriptions/#{subscription_id()}/providers/#{provider}/locations/#{location}/usages",
       url: "/subscriptions/#{subscription_id()}/locations",
-      query: [ "api-version": apiversion ],
+      query: ["api-version": apiversion],
       headers: %{
         "Content-Type" => "application\json",
         "Authorization" => "Bearer #{token()}"
