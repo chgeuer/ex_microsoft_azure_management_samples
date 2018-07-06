@@ -37,6 +37,13 @@ defmodule Sample do
   Returns the value of the `access_token`.
   """
   def token() do
+    azure_date_to_datetime = fn s ->
+      s["expiresOn"]
+      |> (&(&1 <> "Z")).()
+      |> DateTime.from_iso8601()
+      |> elem(1)
+    end
+
     %{"accessToken" => token} =
       System.user_home!()
       |> Path.absname()
@@ -45,6 +52,7 @@ defmodule Sample do
       |> File.read!()
       |> Poison.decode!()
       |> Enum.filter(&(&1["_authority"] == "https://login.microsoftonline.com/" <> tenant_id()))
+      |> Enum.sort_by(azure_date_to_datetime)
       |> List.last()
 
     token
