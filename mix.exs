@@ -22,6 +22,12 @@ defmodule ExMicrosoftAzureManagementSamples.MixProject do
   defp deps do
     [
       {:ibrowse, "~> 4.4"},
+      {:joken, "~> 1.5"},
+      {:tesla, "~> 0.8"},
+      {:poison, ">= 1.0.0"},
+      {:uuid, "~> 1.1"},
+      {:x509, "~> 0.1.1"},
+
       # {:ex_microsoft_azure_management, app: false, github: "chgeuer/ex_microsoft_azure_management", ref: "dae4e474fef90cd59e9cbad5c28580be8e0733a7"}
       {:ex_microsoft_azure_management_compute,
        path: "../ex_microsoft_azure_management/Microsoft.Azure.Management.Compute"},
