@@ -4,13 +4,24 @@ defmodule Microsoft.Azure.ActiveDirectory.DeviceAuthenticator do
 
   use GenServer
 
-  def start(%{tenant_id: _tenant_id, resource: _resource, azure_environment: _env} = state) do
-    GenServer.start(__MODULE__, state)
+  def start_azure_management(),
+    do:
+      %{
+        tenant_id: "common",
+        resource: "https://management.core.windows.net/",
+        azure_environment: :azure_global
+      }
+      |> start()
+
+  def start(%{tenant_id: _, resource: _, azure_environment: _} = state, opts \\ []) do
+    GenServer.start_link(__MODULE__, state, opts)
   end
 
   def get_state(pid), do: pid |> GenServer.call(:get_state)
 
-  def get_device_code(pid), do: pid |> GenServer.call(:get_device_code)
+  def get_device_code(pid, timeout \\ :infinity) do
+    pid |> GenServer.call(:get_device_code, timeout)
+  end
 
   def init(%{tenant_id: _, resource: _, azure_environment: _} = state) do
     new_state =
@@ -25,10 +36,6 @@ defmodule Microsoft.Azure.ActiveDirectory.DeviceAuthenticator do
   end
 
   def handle_call(:get_device_code, _, state = %{stage: :initialized}) do
-
-    state |> IO.inspect()
-
-
     case RestClient.get_device_code(state.tenant_id, state.resource, state.azure_environment) do
       {:ok, r = %DeviceCodeResponse{}} ->
         result = %{
@@ -61,7 +68,10 @@ defmodule Microsoft.Azure.ActiveDirectory.DeviceAuthenticator do
 
   def handle_info(:check_token, state) do
     case RestClient.fetch_device_code_token(
-      state.resource, state.device_code, state.azure_environment) do
+           state.resource,
+           state.device_code,
+           state.azure_environment
+         ) do
       {:ok, r = %TokenResponse{}} ->
         new_state =
           state

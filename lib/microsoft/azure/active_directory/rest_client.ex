@@ -6,7 +6,8 @@ defmodule Microsoft.Azure.ActiveDirectory.RestClient do
   plug(Tesla.Middleware.FormUrlencoded)
   adapter(:ibrowse)
 
-  @az_cli_clientid "04b07795-8ddb-461a-bbee-02f9e1bf7b46"
+  # @az_cli_clientid "04b07795-8ddb-461a-bbee-02f9e1bf7b46"
+  @az_cli_clientid "c7218025-d73c-46c2-bfbb-ef0a6d4b0c40"
 
   def proxy_middleware() do
     case System.get_env("http_proxy") do
@@ -63,11 +64,21 @@ defmodule Microsoft.Azure.ActiveDirectory.RestClient do
     end
   end
 
-  def url(%{} = context, options \\ []) do
-    %{endpoint: endpoint, path: path} = options |> Enum.into(%{})
-    e = context |> Map.get(:azure_environment) |> AzureEnvironment.get() |> Map.get(endpoint)
+  def create_url(v = %{azure_environment: _, endpoint: :active_directory_endpoint, path: _}) do
+    "https://#{AzureEnvironment.get_val(v.azure_environment, v.endpoint)}#{v.path}"
+  end
 
-    context |> Map.put(:url, "https://#{e}#{path}")
+  def url(%{} = context, options \\ []) do
+    url =
+      context
+      |> Map.merge(
+        options
+        |> Enum.into(%{})
+      )
+      |> create_url()
+
+    context
+    |> Map.put(:url, url)
   end
 
   def service_principal_login(
@@ -106,7 +117,8 @@ defmodule Microsoft.Azure.ActiveDirectory.RestClient do
       |> Map.put(:azure_environment, azure_environment)
       |> url(
         endpoint: :active_directory_endpoint,
-        path: "/#{tenant_id |> clean_tenant_id(azure_environment)}/.well-known/openid-configuration"
+        path:
+          "/#{tenant_id |> clean_tenant_id(azure_environment)}/.well-known/openid-configuration"
       )
       |> Enum.into([])
       |> perform_request()
@@ -145,7 +157,8 @@ defmodule Microsoft.Azure.ActiveDirectory.RestClient do
       |> Map.put(:azure_environment, azure_environment)
       |> url(
         endpoint: :active_directory_endpoint,
-        path: "/#{tenant_id |> clean_tenant_id(azure_environment)}/oauth2/devicecode?api-version=1.0"
+        path:
+          "/#{tenant_id |> clean_tenant_id(azure_environment)}/oauth2/devicecode?api-version=1.0"
       )
       |> add_param(:form, "resource", resource)
       |> add_param(:form, "client_id", @az_cli_clientid)
@@ -158,7 +171,8 @@ defmodule Microsoft.Azure.ActiveDirectory.RestClient do
     end
   end
 
-  def fetch_device_code_token(resource, code, azure_environment) when is_atom(azure_environment) do
+  def fetch_device_code_token(resource, code, azure_environment)
+      when is_binary(resource) and is_binary(code) and is_atom(azure_environment) do
     response =
       %{}
       |> Map.put_new(:method, :post)

@@ -1,15 +1,23 @@
 defmodule Samples do
   alias Microsoft.Azure.ActiveDirectory.{RestClient, DeviceAuthenticator}
 
-  @azure_environment :azure_cloud
+  @azure_environment :azure_global
   @tenant_id "chgeuerfte"
   @azure_mgmt_endpoint "https://management.core.windows.net/"
   defp service_principal_app_id(), do: System.get_env("SAMPLE_SP_APPID")
   defp service_principal_key(), do: System.get_env("SAMPLE_SP_KEY")
 
   def device_login() do
-    {:ok, pid} = DeviceAuthenticator.start(%{
-      tenant_id: "common", resource: @azure_mgmt_endpoint, azure_environment: @azure_environment})
+    {:ok, pid} =
+      DeviceAuthenticator.start(
+        %{
+          tenant_id: "common",
+          resource: @azure_mgmt_endpoint,
+          azure_environment: @azure_environment
+        }
+        # , [debug: [:trace]]
+      )
+
     {:ok, %{message: message}} = pid |> DeviceAuthenticator.get_device_code()
 
     IO.puts(message)

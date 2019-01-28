@@ -3,6 +3,8 @@ defmodule Microsoft.Azure.AzureEnvironment do
   A collection of currently available Microsoft Azure Cloud Environments.
   """
 
+  # https://github.com/Azure/go-autorest/blob/master/autorest/azure/environments.go
+
   defstruct [
     :name,
     :management_portal_url,
@@ -29,40 +31,25 @@ defmodule Microsoft.Azure.AzureEnvironment do
   iex> AzureEnvironment.get(:azure_cloud).storage_dns_suffix
   "core.windows.net"
 
-  iex> AzureEnvironment.get(:azure_german_cloud).management_portal_url
+  iex> AzureEnvironment.get(:azure_germany).management_portal_url
   "http://portal.microsoftazure.de"
 
   """
-  def get(:azure), do: get(:azure_cloud)
-  def get(:public), do: get(:azure_cloud)
-  def get(:com), do: get(:azure_cloud)
-  def get(:worldwide), do: get(:azure_cloud)
-  def get(:azure_cloud), do: azure_cloud()
+  def known_environments(), do: [:azure_global, :azure_usgovernment, :azure_china, :azure_germany]
 
-  def get(:us), do: get(:azure_usgovernment_cloud)
-  def get(:usgov), do: get(:azure_usgovernment_cloud)
-  def get(:fairfax), do: get(:azure_usgovernment_cloud)
-  def get(:azure_gov), do: get(:azure_usgovernment_cloud)
-  def get(:azure_usgovernment_cloud), do: azure_usgovernment_cloud()
+  def get(:azure_global), do: azure_global_cloud()
+  def get(:azure_usgovernment), do: azure_usgovernment_cloud()
+  def get(:azure_china), do: azure_china_cloud()
+  def get(:azure_germany), do: azure_german_cloud()
 
-  def get(:cn), do: get(:azure_china_cloud)
-  def get(:china), do: get(:azure_china_cloud)
-  def get(:mooncake), do: get(:azure_china_cloud)
-  def get(:azure_china), do: get(:azure_china_cloud)
-  def get(:azure_china_cloud), do: azure_china_cloud()
+  def get_val(azure_environment, key) when is_atom(azure_environment) and is_atom(key),
+    do: azure_environment |> get() |> Map.get(key)
 
-  def get(:de), do: get(:azure_german_cloud)
-  def get(:germany), do: get(:azure_german_cloud)
-  def get(:blackforest), do: get(:azure_german_cloud)
-  def get(:azure_germany), do: get(:azure_german_cloud)
-  def get(:azure_germany_cloud), do: get(:azure_german_cloud)
-  def get(:azure_german_cloud), do: azure_german_cloud()
-
-  defp azure_cloud do
+  defp azure_global_cloud do
     %__MODULE__{
       name: "AzurePublicCloud",
       management_portal_url: "manage.windowsazure.com",
-      publish_settings_url: "https://manage.windowsazure.compublishsettings/index",
+      publish_settings_url: "https://manage.windowsazure.com&publishsettings/index",
       service_management_endpoint: "management.core.windows.net",
       resource_manager_endpoint: "management.azure.com",
       active_directory_endpoint: "login.microsoftonline.com",
@@ -85,8 +72,8 @@ defmodule Microsoft.Azure.AzureEnvironment do
       publish_settings_url: "https://manage.windowsazure.us/publishsettings/index",
       service_management_endpoint: "management.core.usgovcloudapi.net",
       resource_manager_endpoint: "management.usgovcloudapi.net",
-      active_directory_endpoint: "login.microsoftonline.com",
-      active_directory_tenant_suffix: "onmicrosoft.com",
+      active_directory_endpoint: "login.microsoftonline.us",
+      active_directory_tenant_suffix: "onmicrosoft.us",
       gallery_endpoint: "gallery.usgovcloudapi.net",
       keyvault_endpoint: "vault.usgovcloudapi.net",
       graph_endpoint: "graph.usgovcloudapi.net",
@@ -105,7 +92,7 @@ defmodule Microsoft.Azure.AzureEnvironment do
       publish_settings_url: "https://manage.chinacloudapi.com/publishsettings/index",
       service_management_endpoint: "management.core.chinacloudapi.cn",
       resource_manager_endpoint: "management.chinacloudapi.cn",
-      active_directory_endpoint: "login.chinacloudapi.cn/?api-version=1.0",
+      active_directory_endpoint: "login.chinacloudapi.cn",
       active_directory_tenant_suffix: "onmschina.cn",
       gallery_endpoint: "gallery.chinacloudapi.cn",
       keyvault_endpoint: "vault.azure.cn",

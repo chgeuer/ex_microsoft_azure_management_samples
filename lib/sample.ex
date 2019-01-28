@@ -29,6 +29,13 @@ defmodule Sample do
     Application.get_env(:ex_microsoft_azure_management_samples, :tenant_id)
   end
 
+  def token() do
+    {:ok, %Microsoft.Azure.ActiveDirectory.Model.TokenResponse{access_token: access_token}} =
+      Samples.sp_login()
+
+    access_token
+  end
+
   @doc """
   Steals a valid `access_token` from the user's 'az cli' directory (~/.azure/accessTokens.json).
 
@@ -36,7 +43,7 @@ defmodule Sample do
 
   Returns the value of the `access_token`.
   """
-  def token() do
+  def token_from_az_cli() do
     azure_date_to_datetime = fn s ->
       s["expiresOn"]
       |> (&(&1 <> "Z")).()
@@ -44,18 +51,16 @@ defmodule Sample do
       |> elem(1)
     end
 
-    %{"accessToken" => token} =
-      System.user_home!()
-      |> Path.absname()
-      |> Path.join(".azure")
-      |> Path.join("accessTokens.json")
-      |> File.read!()
-      |> Poison.decode!()
-      |> Enum.filter(&(&1["_authority"] == "https://login.microsoftonline.com/" <> tenant_id()))
-      |> Enum.sort_by(azure_date_to_datetime)
-      |> List.last()
-
-    token
+    System.user_home!()
+    |> Path.absname()
+    |> Path.join(".azure")
+    |> Path.join("accessTokens.json")
+    |> File.read!()
+    |> Poison.decode!()
+    |> Enum.filter(&(&1["_authority"] == "https://login.microsoftonline.com/" <> tenant_id()))
+    |> Enum.sort_by(azure_date_to_datetime)
+    |> List.last()
+    |> Map.get("accessToken")
   end
 
   def connection() do
@@ -308,18 +313,23 @@ defmodule Sample do
     location = "westeurope"
     provider = "Microsoft.Compute"
     # "2018-04-01"
-    apiversion = "2014-04"
+    apiversion = "2017-12-01"
 
-    [
-      method: :get,
-      # url: "/subscriptions/#{subscription_id()}/providers/#{provider}/locations/#{location}/usages",
-      url: "/subscriptions/#{subscription_id()}/locations",
-      query: ["api-version": apiversion],
-      headers: %{
-        "Content-Type" => "application\json",
-        "Authorization" => "Bearer #{token()}"
-      }
-    ]
-    |> Client.raw_request()
+    %Tesla.Env{
+      body: %{"value" => value}
+    } =
+      Client.raw_request(
+        method: :get,
+        url:
+          "/subscriptions/#{subscription_id()}/providers/#{provider}/locations/#{location}/usages",
+        query: ["api-version": apiversion],
+        headers: %{
+          "Content-Type" => "application/json",
+          "Authorization" => "Bearer #{token()}"
+        }
+      )
+
+    value
+    |> Enum.filter(fn %{"currentValue" => x} -> x > 0 end)
   end
 end
