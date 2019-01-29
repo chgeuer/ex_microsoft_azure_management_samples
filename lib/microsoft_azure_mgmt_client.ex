@@ -26,7 +26,7 @@ defmodule MicrosoftAzureMgmtClient do
 
   defp new(base_url, token) when is_binary(token) do
     Tesla.build_client([
-      Tesla.Middleware.KeepRequest,
+      #Tesla.Middleware.KeepRequest,
       {Tesla.Middleware.BaseUrl, base_url},
       # https://github.com/teamon/tesla/wiki/0.x-to-1.0-Migration-Guide#headers-are-now-a-list-160
       {Tesla.Middleware.Headers, %{"Authorization" => "Bearer #{token}"}},

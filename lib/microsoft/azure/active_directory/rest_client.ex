@@ -6,8 +6,8 @@ defmodule Microsoft.Azure.ActiveDirectory.RestClient do
   plug(Tesla.Middleware.FormUrlencoded)
   adapter(:ibrowse)
 
-  # @az_cli_clientid "04b07795-8ddb-461a-bbee-02f9e1bf7b46"
-  @az_cli_clientid "c7218025-d73c-46c2-bfbb-ef0a6d4b0c40"
+  @az_cli_clientid "04b07795-8ddb-461a-bbee-02f9e1bf7b46"
+  # @az_cli_clientid "c7218025-d73c-46c2-bfbb-ef0a6d4b0c40"
 
   def proxy_middleware() do
     case System.get_env("http_proxy") do
